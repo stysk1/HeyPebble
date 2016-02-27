@@ -1,0 +1,33 @@
+{
+    "appKeys": {},
+    "capabilities": [
+        ""
+    ],
+    "companyName": "kstys97@gmail.com",
+    "enableMultiJS": true,
+    "longName": "Pebbulous",
+    "projectType": "native",
+    "resources": {
+        "media": [
+            {
+                "file": "images/iconPebbulous.png",
+                "menuIcon": true,
+                "name": "FAB_ICON",
+                "targetPlatforms": null,
+                "type": "png"
+            }
+        ]
+    },
+    "sdkVersion": "3",
+    "shortName": "Pebbulous",
+    "targetPlatforms": [
+        "aplite",
+        "basalt",
+        "chalk"
+    ],
+    "uuid": "6e25bb26-f688-4b90-b1ba-647ebe27b836",
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": false
+    }
+}
