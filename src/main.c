@@ -1,33 +1,148 @@
 #include <pebble.h>
 
-Window *window;
-TextLayer *text_layer;
+#define KEY_BUTTON    0
+#define KEY_DATA      0
+#define KEY_VIBRATE   1
+
+#define BUTTON_UP     0
+#define BUTTON_SELECT 1
+#define BUTTON_DOWN   2
+
+static Window *s_main_window;
+static TextLayer *s_text_layer;
 static DictationSession *s_dictation_session;
-static char s_last_text[512];
+
+static char s_last_text[256];
+static char s_buffer[256];
+
+static bool s_speaking_enabled;
+
+/******************************* AppMessage ***********************************/
+
+static void send(int key, int message) {
+  DictionaryIterator *iter;
+  app_message_outbox_begin(&iter);
+
+  dict_write_int(iter, key, &message, sizeof(int), true);
+
+  app_message_outbox_send();
+}
+
+static void inbox_received_handler(DictionaryIterator *iterator, void *context) {
+  // Get the first pair
+  Tuple *t = dict_read_first(iterator);
+
+  // Process all pairs present
+  while(t != NULL) {
+    // Process this pair's key
+    switch(t->key) {
+      case KEY_DATA:
+        snprintf(s_buffer, sizeof(s_buffer), "'%s'", t->value->cstring);
+        text_layer_set_text(s_text_layer, s_buffer);
+        break;
+      default:
+        APP_LOG(APP_LOG_LEVEL_INFO, "Unknown key: %d", (int)t->key);
+        break;
+    }
+
+    // Get next pair, if any
+    t = dict_read_next(iterator);
+  }
+}
+
+static void inbox_dropped_handler(AppMessageResult reason, void *context) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
+}
+
+static void outbox_failed_handler(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox send failed!");
+}
+
+static void outbox_sent_handler(DictionaryIterator *iterator, void *context) {
+  APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
+}
+
+/******************************* Dictation API ********************************/
 
 static void dictation_session_callback(DictationSession *session, DictationSessionStatus status, 
                                        char *transcription, void *context) {
-  // Print the results of a transcription attempt                                     
-  APP_LOG(APP_LOG_LEVEL_INFO, "Dictation status: %d", (int)status);
+  if(status == DictationSessionStatusSuccess) {
+    // Display the dictated text
+    snprintf(s_last_text, sizeof(s_last_text), "Transcription:\n\n%s", transcription);
+    text_layer_set_text(s_text_layer, s_last_text);
+  } else {
+    // Display the reason for any error
+    static char s_failed_buff[128];
+    snprintf(s_failed_buff, sizeof(s_failed_buff), "Transcription failed.\n\nError ID:\n%d", (int)status);
+    text_layer_set_text(s_text_layer, s_failed_buff);
+  }
 }
 
-void init() {
-  window = window_create();
-  text_layer = text_layer_create(GRect(0, 0, 144, 40));
-  text_layer_set_text(text_layer, "Hello, Pebble!");
-  layer_add_child(window_get_root_layer(window), 
-                    text_layer_get_layer(text_layer));
-  window_stack_push(window, true);
+/******************************* main_window **********************************/
+
+static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
+  // Start voice dictation UI
+  dictation_session_start(s_dictation_session);
 }
 
-void deinit() {
-  text_layer_destroy(text_layer);
-  window_destroy(window);
+static void click_config_provider(void *context) {
+  window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
 }
 
-int main() {
+static void main_window_load(Window *window) {
+  Layer *window_layer = window_get_root_layer(window);
+  GRect bounds = layer_get_frame(window_layer);
+
+  // Create main TextLayer
+  s_text_layer = text_layer_create(GRect(5, 5, bounds.size.w - 10, 100));
+  text_layer_set_text(s_text_layer, "Press Select to get input!");
+  text_layer_set_text_alignment(s_text_layer, GTextAlignmentCenter);
+  layer_add_child(window_layer, text_layer_get_layer(s_text_layer));
+
+  
+#ifdef PBL_ROUND
+  text_layer_enable_screen_text_flow_and_paging(s_text_layer, 5);
+#endif
+}
+
+static void main_window_unload(Window *window) {
+  // Destroy main TextLayer
+  text_layer_destroy(s_text_layer);
+}
+
+static void init(void) {
+  // Register callbacks
+  app_message_register_inbox_received(inbox_received_handler);
+  app_message_register_inbox_dropped(inbox_dropped_handler);
+  app_message_register_outbox_failed(outbox_failed_handler);
+  app_message_register_outbox_sent(outbox_sent_handler);
+
+  // Open AppMessage
+  app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
+
+  // Create main Window
+  s_main_window = window_create();
+  
+  window_set_window_handlers(s_main_window, (WindowHandlers) {
+    .load = main_window_load,
+    .unload = main_window_unload,
+  });
+  window_stack_push(s_main_window, true);
+  
+  
+  // Create new dictation session
+  s_dictation_session = dictation_session_create(sizeof(s_last_text), dictation_session_callback, NULL);
+  
+}
+
+static void deinit(void){
+  dictation_session_destroy(s_dictation_session);
+  // Destroy main Window
+  window_destroy(s_main_window);
+}
+
+int main(void) {
   init();
   app_event_loop();
   deinit();
-  return 0;
 }

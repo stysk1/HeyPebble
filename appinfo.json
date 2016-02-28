@@ -1,23 +1,25 @@
 {
-    "appKeys": {},
+    "appKeys": {
+        "KEY_DATA": 0
+    },
     "capabilities": [
         ""
     ],
     "companyName": "kstys97@gmail.com",
     "enableMultiJS": true,
-    "longName": "Pebbulous",
+    "longName": "HeyPebble",
     "projectType": "native",
     "resources": {
         "media": []
     },
     "sdkVersion": "3",
-    "shortName": "Pebbulous",
+    "shortName": "HeyPebble",
     "targetPlatforms": [
         "aplite",
         "basalt",
         "chalk"
     ],
-    "uuid": "20c02ae9-4085-4eeb-b7b5-01e1db5010bf",
+    "uuid": "f19ceb67-6d45-43a0-8e69-f56dd53c6197",
     "versionLabel": "1.0",
     "watchapp": {
         "watchface": false
