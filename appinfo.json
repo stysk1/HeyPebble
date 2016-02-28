@@ -8,15 +8,7 @@
     "longName": "Pebbulous",
     "projectType": "native",
     "resources": {
-        "media": [
-            {
-                "file": "images/iconPebbulous.png",
-                "menuIcon": true,
-                "name": "FAB_ICON",
-                "targetPlatforms": null,
-                "type": "png"
-            }
-        ]
+        "media": []
     },
     "sdkVersion": "3",
     "shortName": "Pebbulous",
@@ -25,7 +17,7 @@
         "basalt",
         "chalk"
     ],
-    "uuid": "6e25bb26-f688-4b90-b1ba-647ebe27b836",
+    "uuid": "20c02ae9-4085-4eeb-b7b5-01e1db5010bf",
     "versionLabel": "1.0",
     "watchapp": {
         "watchface": false
