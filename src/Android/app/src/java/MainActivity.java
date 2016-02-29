@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
 
     public class Reader extends AsyncTask<String, Void, String> {
 
-        protected final String key = "AIzaSyD9ukYTAgormeoWvp_EikfPnpWW8DXTgxU";
+        protected final String key = "AIzaSyBorIIPjcPT4I9tcFLxzzB844_dzShLcPY";
         public String output;
 
         @Override
