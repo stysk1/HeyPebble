@@ -67,7 +67,7 @@ static void outbox_sent_handler(DictionaryIterator *iterator, void *context) {
 static void dictation_session_callback(DictationSession *session, DictationSessionStatus status, 
                                        char *transcription, void *context) {
   if(status == DictationSessionStatusSuccess) {
-    APP_LOG(APP_LOG_LEVEL_INFO, "Dictation succeeded!";
+    APP_LOG(APP_LOG_LEVEL_INFO, "Dictation succeeded!");
 
     // Display the dictated text
     snprintf(s_last_text, sizeof(s_last_text), "Transcription:\n\n%s", transcription);
@@ -84,10 +84,6 @@ static void dictation_session_callback(DictationSession *session, DictationSessi
 
 /******************************* button events **********************************/
 
-// Map button events to function pointers
-static void click_config_provider(void *context) {
-  window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
-}
 
 // Single click handler for BUTTON_ID_SELECT
 static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
@@ -97,6 +93,14 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
   // Start voice dictation UI
   dictation_session_start(s_dictation_session);
 }
+
+
+// Map button events to function pointers
+static void click_config_provider(void *context) {
+  window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
+}
+
+
 
 /******************************* main_window **********************************/
 
