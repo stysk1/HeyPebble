@@ -67,10 +67,14 @@ static void outbox_sent_handler(DictionaryIterator *iterator, void *context) {
 static void dictation_session_callback(DictationSession *session, DictationSessionStatus status, 
                                        char *transcription, void *context) {
   if(status == DictationSessionStatusSuccess) {
+    APP_LOG(APP_LOG_LEVEL_INFO, "Dictation succeeded!";
+
     // Display the dictated text
     snprintf(s_last_text, sizeof(s_last_text), "Transcription:\n\n%s", transcription);
     text_layer_set_text(s_text_layer, s_last_text);
   } else {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Dictation failed with status: %d!", (int)status);
+
     // Display the reason for any error
     static char s_failed_buff[128];
     snprintf(s_failed_buff, sizeof(s_failed_buff), "Transcription failed.\n\nError ID:\n%d", (int)status);
@@ -78,16 +82,24 @@ static void dictation_session_callback(DictationSession *session, DictationSessi
   }
 }
 
-/******************************* main_window **********************************/
+/******************************* button events **********************************/
 
+// Map button events to function pointers
+static void click_config_provider(void *context) {
+  window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
+}
+
+// Single click handler for BUTTON_ID_SELECT
 static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
+  // Log every time we process the select button
+  APP_LOG(APP_LOG_LEVEL_INFO, "Received select click event!");
+
   // Start voice dictation UI
   dictation_session_start(s_dictation_session);
 }
 
-static void click_config_provider(void *context) {
-  window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
-}
+/******************************* main_window **********************************/
+
 
 static void main_window_load(Window *window) {
   Layer *window_layer = window_get_root_layer(window);
@@ -123,10 +135,14 @@ static void init(void) {
   // Create main Window
   s_main_window = window_create();
   
+  // Set event handler for window load and unload
   window_set_window_handlers(s_main_window, (WindowHandlers) {
     .load = main_window_load,
     .unload = main_window_unload,
   });
+  
+  // Set the main window's click handler
+  window_set_click_config_provider(s_main_window, click_config_provider);
   window_stack_push(s_main_window, true);
   
   
