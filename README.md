@@ -9,6 +9,7 @@ The companion app currently contains the search bar that performs a google searc
 For testing on an emulator, using the following with the commandline-tool (https://developer.pebble.com/guides/publishing-tools/pebble-tool):
 
 [LINUX]
+
 	// Install the compiled app .pbw file
 	pebble install --emulator basalt <path to HeyPebble.pbw>
 
