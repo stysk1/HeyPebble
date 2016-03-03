@@ -12,10 +12,10 @@ static Window *s_main_window;
 static TextLayer *s_text_layer;
 static DictationSession *s_dictation_session;
 
+static const uint32_t DICTATION_KEY = 0xabbababe;
 static char s_last_text[256];
-static char s_buffer[256];
 
-static bool s_speaking_enabled;
+static char s_buffer[256];
 
 /******************************* AppMessage ***********************************/
 
@@ -64,6 +64,20 @@ static void outbox_sent_handler(DictionaryIterator *iterator, void *context) {
 
 /******************************* Dictation API ********************************/
 
+static void send_dictation_appmessage(char* transcription)
+{
+  // Begin dictionary
+  DictionaryIterator *iter;
+  app_message_outbox_begin(&iter);
+
+  // Add a key-value pair
+  dict_write_cstring(iter, DICTATION_KEY, transcription);
+
+  // Send the message!
+  app_message_outbox_send();
+  
+}
+
 static void dictation_session_callback(DictationSession *session, DictationSessionStatus status, 
                                        char *transcription, void *context) {
   if(status == DictationSessionStatusSuccess) {
@@ -72,6 +86,8 @@ static void dictation_session_callback(DictationSession *session, DictationSessi
     // Display the dictated text
     snprintf(s_last_text, sizeof(s_last_text), "Transcription:\n\n%s", transcription);
     text_layer_set_text(s_text_layer, s_last_text);
+    
+    send_dictation_appmessage(transcription);
   } else {
     APP_LOG(APP_LOG_LEVEL_ERROR, "Dictation failed with status: %d!", (int)status);
 
@@ -151,7 +167,12 @@ static void init(void) {
   
   
   // Create new dictation session
+  #ifdef PBL_MICROPHONE
+  APP_LOG(APP_LOG_LEVEL_INFO, "MIC AVAILABLE!");
   s_dictation_session = dictation_session_create(sizeof(s_last_text), dictation_session_callback, NULL);
+  #else
+  APP_LOG(APP_LOG_LEVEL_INFO, "NO MIC!");
+  #endif
   
 }
 
